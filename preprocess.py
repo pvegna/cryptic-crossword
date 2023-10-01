@@ -76,8 +76,28 @@ fig = go.Figure(data=[go.Table(
 
 fig.update_layout(width=1500, height=1000)
 fig.show()
-'''
+
+
 with open ('data/clues.csv', 'r', encoding='utf-8') as in_file, open ('data/clues_compressed.csv', 'w', encoding ='utf-8') as out_file:
     csv_in = csv.reader(in_file)
     for line in csv_in:
         out_file.write(','.join(line[:4]) + '\n')
+'''
+import random 
+import math
+
+with open ('data/consolidated.json', 'r') as in_file:
+    in_data = in_file.readlines()
+    
+random.shuffle(in_data)
+train_len = math.ceil(len(in_data) * .70)
+test_len = math.ceil(len(in_data) * .90)
+
+with open ('data/train.json', 'w') as train_file:
+    train_file.writelines(in_data[:train_len])
+with open ('data/test.json', 'w') as test_file:
+    test_file.writelines(in_data[train_len:test_len])
+with open ('data/validate.json', 'w') as valid_file:
+    valid_file.writelines(in_data[test_len:])
+
+# MUST FIX CONSOLIDATED, CLUES CAN HAVE MULTIPLE CHARADES/INDICS
