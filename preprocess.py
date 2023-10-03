@@ -1,12 +1,12 @@
 import csv
 import json
-
 '''
+
 consol = {}
-with open ('data/clues.csv', 'r', encoding='utf-8') as clues_file:
+with open ('data/clues_large.csv', 'r', encoding='utf-8') as clues_file:
     csv_clues = csv.reader(clues_file)
     for row in csv_clues:
-        consol[row[0]] = [row[1], row[2], row[3]]
+        consol[row[0]] = [row[1], row[2], row[3], [], []]
 
 
 with open ('data/charades_by_clue.csv', 'r') as charades_file:
@@ -14,11 +14,8 @@ with open ('data/charades_by_clue.csv', 'r') as charades_file:
     for row in csv_chars:
         key = row[1]
         if key in consol.keys():
-            consol[key].extend([row[2], row[3]])
+            consol[key][3].append((row[2], row[3]))
 
-for key, val in consol.items():
-    if len(val) != 5:
-        consol[key].extend([None, None])
 
 wp = ['alternation','anagram','container','deletion','hidden','homophone','insertion','reversal']
 
@@ -29,22 +26,19 @@ with open ('data/indicators_by_clue.csv', 'r') as indic_file:
         if key in consol.keys():
             for i in range(1, len(row)):
                 if row[i]:
-                    consol[key].extend([row[i], wp[i-1]])
-
-for key, val in consol.items():
-    if len(val) != 7:
-        consol[key].extend([None, None])
+                    consol[key][4].append((row[i], wp[i-1]))
 
 with open ('data/consolidated_pruned.json', 'w') as consol_file:
     for key, val in consol.items():
         line = {'rowid': key, 'clue': val[0], 'answer': val[1],
-                'definition': val[2], 'charader': val[3], 'charade': val[4], 
-                'wordplay': val[5], 'indicator': val[6]}
-        if (line['charader'] or line['wordplay']):
+                'definition': val[2], 'charades': val[3], 'indicators': val[4]}
+        if (line['charades'] or line['indicators']):
             consol_file.write(json.dumps(line) + '\n')
+
 
 with open ('data/consolidated.json', 'r') as data_file:
     consol_data = data_file.readlines()
+
 
 rowids, clues, ans, defs, chars, char_ans, wps, indics = [], [], [], [], [], [], [], []
 for line in consol_data:
@@ -100,4 +94,4 @@ with open ('data/test.json', 'w') as test_file:
 with open ('data/validate.json', 'w') as valid_file:
     valid_file.writelines(in_data[test_len:])
 
-# MUST FIX CONSOLIDATED, CLUES CAN HAVE MULTIPLE CHARADES/INDICS
+
