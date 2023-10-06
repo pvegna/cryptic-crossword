@@ -1,5 +1,7 @@
 import csv
 import json
+import random 
+import math
 '''
 
 consol = {}
@@ -75,17 +77,15 @@ fig.show()
 with open ('data/clues.csv', 'r', encoding='utf-8') as in_file, open ('data/clues_compressed.csv', 'w', encoding ='utf-8') as out_file:
     csv_in = csv.reader(in_file)
     for line in csv_in:
-        out_file.write(','.join(line[:4]) + '\n')
-'''
-import random 
-import math
+        out_file.write(','.join(line[:4]) + '\n')'''
 
-with open ('data/consolidated.json', 'r') as in_file:
+'''
+with open ('data/good_examples_raw.json', 'r') as in_file:
     in_data = in_file.readlines()
     
 random.shuffle(in_data)
-train_len = math.ceil(len(in_data) * .70)
-test_len = math.ceil(len(in_data) * .90)
+train_len = math.ceil((len(in_data)) * .80) - 200
+test_len = train_len + math.ceil((len(in_data)) * .15)
 
 with open ('data/train.json', 'w') as train_file:
     train_file.writelines(in_data[:train_len])
@@ -94,4 +94,23 @@ with open ('data/test.json', 'w') as test_file:
 with open ('data/validate.json', 'w') as valid_file:
     valid_file.writelines(in_data[test_len:])
 
+def remove_insert(split):
+    with open (f'data/{split}.json', 'r') as in_file, open (f'data/{split}1.json', 'w') as out_file:
+        for line in in_file:
+            line = json.loads(line)
+            for i in range(len(line['indicators'])):
+                if line['indicators'][i][1] == 'insertion':
+                    line['indicators'][i][1] = 'container'
+            out_file.write(json.dumps(line)+'\n')
 
+remove_insert('train')
+remove_insert('validate')
+remove_insert('test')
+'''
+with open ('data/train1.json', 'r') as in_file:
+    in_data = in_file.readlines()
+    
+random.shuffle(in_data)
+
+with open ('data/train2.json', 'w') as train_file:
+    train_file.writelines(in_data)
