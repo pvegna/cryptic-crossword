@@ -1,11 +1,14 @@
 categories added:
-concatenation
+concatenation--combination
 acronym
 replacement
 
 TODO: 
- - change all insertion to container
+ - change all insertion to container [x]
  - remove all examples with no definition
+ - change concatenation to combination
+ - subst utf-8 symbols
+ - make sure no duplicates in good edited
 
 edited:
 - up to 686

@@ -21,8 +21,23 @@ def preprocess(data):
                       padding='longest', truncation=True,
                       max_length=512, return_tensors='pt',
                       return_attention_mask=False)
-    #label = ["None" if not indic else indic[0][1] for indic in data['indicators']]
-    labels = tokenizer(data['answer'], 
+    labels = []
+    # add step for length?
+    for i in range(len(data['answer'])):
+        defin = ""
+        if data['definition'][i]:
+            defin = "The definition is '" + data['definition'][i] + "'. "
+        charades = ""
+        if data['charades'][i]:
+            for charade in data['charades'][i]:
+                charades += charade[1] + " is a charade for '" + charade[0] + "'. "
+        indics = ""
+        if data['indicators'][i]:
+            for indic in data['indicators'][i]:
+                if indic:
+                    indics += "'" + indic[0] + "' is an indicator of " + indic[1] + ". "
+        labels.append(defin + charades + indics + "The answer is " + data['answer'][i] + ".")
+    labels = tokenizer(labels, 
                       #label,
                       padding='longest', truncation=True, 
                       return_tensors='pt',
@@ -34,12 +49,11 @@ def preprocess(data):
 
 def collate(data):
     return {'input_ids': tensor([ex['input_ids'] for ex in data]), 
-            'attention_mask': tensor([ex['attention_mask'] for ex in data]),
             'labels': tensor([ex['labels'] for ex in data])}
 
 batch_size = 1
 data = load_dataset('json', data_files={'validate':'validate.json'}).shuffle()
-data = data['validate'].select_columns(['clue', 'answer'])
+data = data['validate'].select_columns(['clue', 'answer', 'definition', 'charades', 'indicators'])
 data = data.map(preprocess, batched=True, batch_size=batch_size)
 train_dataloader = DataLoader(data, #data.select_columns(['input_ids', 'attention_mask', 'labels']),
                                batch_size=1, shuffle=False, 
