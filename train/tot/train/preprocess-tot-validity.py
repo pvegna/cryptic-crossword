@@ -67,7 +67,7 @@ for line in data:
     step = good_step
     
     # ------------------------indicator noise--------------------------------------------#
-    indic_options = ["anagram", "container", "combination", "deletion", "reversal", "homophone", "acronym"]
+    indic_options = ["anagram", "container", "combination", "deletion", "reversal", "homophone", "acronym", "alternation"]
     for indic in ex["indicators"]:
         if indic:
             r = random.uniform(0,1)

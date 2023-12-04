@@ -12,7 +12,11 @@ for line in data:
                        "last": last, 
                        "label": step})
         last = step
+    inputs.append({"clue": ex['clue'], 
+                       "last": ex['steps'][-1], 
+                       "label": ex['answer']})
 
 with open("tot_propose_train.json", "w", encoding="utf-8") as out_file:
     for ex in inputs:
         out_file.write(json.dumps(ex) + '\n')
+    

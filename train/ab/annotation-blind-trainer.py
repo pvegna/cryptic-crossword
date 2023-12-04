@@ -20,24 +20,16 @@ model = model.to(device)
 def preprocess(data):
     inputs = ["question: What is the answer to the cryptic crossword clue? context: " + clue for clue in data['clue']]
     batch = tokenizer(inputs, 
-                      #["Extractive QA: Context: " + clue + "Question: What is the person's age?" for clue in data['clue']],
                       padding="max_length", truncation=False,
                       max_length=130, return_tensors='pt',
                       return_attention_mask=True)
-    #label = ["None" if not indic else indic[0][1] for indic in data['indicators']]
     labels = tokenizer(data['answer'], 
-                      #label,
                       padding="max_length", truncation=False, 
                       max_length=50, return_tensors='pt',
                       return_attention_mask=True)
     ignore_mask = labels == 0
     labels[ignore_mask] = -100
     batch['labels'] = labels['input_ids']
-    #for i in range(len(inputs)):
-    #    print(inputs[i])
-    #    print(batch['input_ids'][i])
-    #    print(data['answer'][i])
-    #    print(batch['labels'][i])
     return batch
 
 def compute_metric():
@@ -50,18 +42,15 @@ def collate(data):
 
 batch_size = 64
 print('loading dataset...\n')
-train_data = load_dataset('json', data_files={'train':'train.json'}).shuffle()
-#data = data['train'].select_columns(['clue', 'answer'])
+train_data = load_dataset('json', data_files={'train':'good_examples_edited.json'}).shuffle()
 train_data = train_data['train'].select_columns(['clue', 'answer'])
 train_data = train_data.map(preprocess, batched=True, batch_size=batch_size)
 
+'''
 eval_data = load_dataset('json', data_files={'validate':'validate.json'}).shuffle()
 eval_data = eval_data['validate'].select_columns(['clue', 'answer'])
 eval_data = eval_data.map(preprocess, batched=True, batch_size=batch_size)
-#train_dataloader = DataLoader(data, #data.select_columns(['input_ids', 'attention_mask', 'labels']),
-#                               batch_size=batch_size, shuffle=False, 
-#                               collate_fn=collate)
-#collator = DataCollatorWithPadding(tokenizer=tokenizer, padding="longest", max_length=512)
+'''
 
 class DataCollator:
     def __init__(self, tokenizer):
@@ -75,23 +64,25 @@ class DataCollator:
 collator = DataCollator(tokenizer)
 
 args = TrainingArguments(
-    output_dir="/scratch/network/pvegna/cryptic/logs/annotation-blind-lg-t10/",
+    output_dir="/scratch/network/pvegna/models/ab/",
     per_device_train_batch_size=batch_size,
     learning_rate=5e-5,
-    num_train_epochs=1,
+    num_train_epochs=50,
     weight_decay=0.1,
     warmup_ratio=.10,
-    logging_dir="/scratch/network/pvegna/cryptic/logs/annotation-blind-lg-t10/"
+    logging_dir="/scratch/network/pvegna/cryptic/logs/ab/",
+    logging_steps=20,
+    save_strategy="steps",
+    save_steps=.5
 )
 
 trainer = Trainer(model, 
                   args=args, 
                   train_dataset=train_data, 
-                  eval_dataset=eval_data,
+                  #eval_dataset=eval_data,
                   tokenizer=tokenizer, 
                   data_collator=collator)
 
 trainer.train()
 
-trainer.save_model('/scratch/network/pvegna/models/annotation-blind-lg-t10/')
 
